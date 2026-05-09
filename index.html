@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>매일 나를 돌보는 시간 — 명상 앱 목업</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg:       #F4EFE6;        /* 따뜻한 린넨 */
+    --card:     #FDFAF5;        /* 아이보리 카드 */
+    --primary:  #4A7459;        /* 딥 포레스트 그린 */
+    --primary2: #7A9E82;        /* 세이지 그린 */
+    --primary3: #B5CDB8;        /* 미스트 그린 */
+    --accent:   #C4855A;        /* 테라코타 */
+    --warm:     #E8C99A;        /* 웜 샌드 */
+    --text:     #2E2A25;        /* 딥 워밍 브라운 */
+    --text2:    #6B6056;        /* 미디엄 어스 */
+    --text3:    #B0A89E;        /* 뮤트 웜 그레이 */
+    --border:   #E2D9CE;        /* 소프트 베이지 */
+    --nav-h:    64px;
+    --radius:   20px;
+    --shadow:   0 4px 20px rgba(74,116,89,0.10);
+  }
+
+  body {
+    font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    background: #1C3525;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* ── Forest Background ── */
+  .forest-bg {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .forest-bg svg { width: 100%; height: 100%; }
+
+  .landing-header, .screen-tabs, .phone-wrap { position: relative; z-index: 1; }
+
+  /* ── Landing header ── */
+  .landing-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .landing-header h1 {
+    font-size: 26px; font-weight: 700; letter-spacing: -0.5px;
+    color: #E8F0EB;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  .landing-header p  { font-size: 14px; color: rgba(200,225,210,0.75); margin-top: 6px; }
+
+  /* ── Screen tabs ── */
+  .screen-tabs {
+    display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+    margin-bottom: 28px;
+  }
+  .screen-tabs button {
+    padding: 8px 16px; border: 1.5px solid rgba(181,205,184,0.25);
+    border-radius: 20px;
+    background: rgba(28,53,37,0.55); color: rgba(200,225,210,0.85);
+    font-size: 13px; font-family: inherit; cursor: pointer;
+    transition: all .25s; backdrop-filter: blur(8px);
+  }
+  .screen-tabs button.active {
+    background: var(--primary); color: #fff; font-weight: 600;
+    border-color: var(--primary2);
+    box-shadow: 0 4px 14px rgba(74,116,89,0.45);
+  }
+
+  /* ── Phone frame ── */
+  .phone-wrap {
+    position: relative;
+    width: 375px;
+    max-width: 100%;
+  }
+  .phone-frame {
+    background: #2A2520;
+    border-radius: 48px;
+    padding: 12px;
+    box-shadow:
+      0 50px 100px rgba(46,42,37,0.4),
+      0 0 0 1px rgba(255,255,255,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+  .phone-screen {
+    background: var(--bg);
+    border-radius: 38px;
+    overflow: hidden;
+    height: 780px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Status bar ── */
+  .status-bar {
+    height: 44px; display: flex; align-items: center;
+    justify-content: space-between; padding: 0 24px;
+    background: var(--bg); flex-shrink: 0;
+    font-size: 12px; font-weight: 600; color: var(--text);
+  }
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+
+  /* ── Screens ── */
+  .screen { display: none; flex: 1; overflow-y: auto; flex-direction: column; }
+  .screen.active { display: flex; }
+  .screen::-webkit-scrollbar { display: none; }
+
+  /* ── Bottom nav ── */
+  .bottom-nav {
+    height: var(--nav-h); background: var(--card);
+    display: flex; border-top: 1px solid var(--border);
+    flex-shrink: 0; border-radius: 0 0 38px 38px;
+    backdrop-filter: blur(10px);
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 4px; cursor: pointer; transition: all .2s;
+    color: var(--text3); font-size: 10px;
+  }
+  .nav-item.active { color: var(--primary); transform: translateY(-1px); }
+  .nav-icon { font-size: 22px; }
+
+  /* ── Shared components ── */
+  .section-pad { padding: 0 20px; }
+  .page-title  { font-size: 22px; font-weight: 700; color: var(--text); }
+  .page-sub    { font-size: 13px; color: var(--text2); margin-top: 2px; }
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 18px; margin-bottom: 12px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(226,217,206,0.6);
+  }
+  .card-title { font-size: 12px; font-weight: 600; color: var(--text3); margin-bottom: 10px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .tag {
+    display: inline-block; padding: 4px 11px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+    background: rgba(74,116,89,0.10); color: var(--primary);
+    border: 1px solid rgba(74,116,89,0.15);
+  }
+
+  /* ──────────────────────────────────────────
+     SCREEN 1: 홈
+  ────────────────────────────────────────── */
+  #screen-home .greeting-area {
+    background: linear-gradient(160deg, #3A5C46 0%, #4A7459 40%, #6A9472 80%, #9DB89F 100%);
+    padding: 24px 20px 32px;
+    flex-shrink: 0;
+  }
+  #screen-home .greeting-area .date { font-size: 12px; color: rgba(255,255,255,0.7); }
+  #screen-home .greeting-area h2 { font-size: 22px; font-weight: 700; color: #fff; margin-top: 4px; }
+  #screen-home .greeting-area p  { font-size: 13px; color: rgba(255,255,255,0.8); margin-top: 4px; }
+
+  .big-btn {
+    width: 100%; padding: 18px; border: none; border-radius: var(--radius);
+    font-size: 16px; font-weight: 700; font-family: inherit;
+    cursor: pointer; transition: transform .2s, box-shadow .2s;
+    letter-spacing: -0.3px;
+  }
+  .big-btn:active { transform: scale(0.97); }
+  .big-btn-primary {
+    background: linear-gradient(135deg, #4A7459 0%, #6A9472 60%, #8FB896 100%);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(74,116,89,0.35), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+
+  .today-stats { display: flex; gap: 10px; margin: 12px 0; }
+  .stat-card {
+    flex: 1; background: var(--card); border-radius: 18px;
+    padding: 14px 12px; text-align: center;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(226,217,206,0.7);
+  }
+  .stat-val  { font-size: 22px; font-weight: 700; color: var(--primary); }
+  .stat-unit { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  .streak-bar {
+    display: flex; gap: 6px; margin-top: 10px;
+  }
+  .streak-day {
+    flex: 1; height: 7px; border-radius: 4px; background: var(--border);
+  }
+  .streak-day.done {
+    background: linear-gradient(to right, var(--primary), var(--primary2));
+  }
+
+  .friend-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 0; border-bottom: 1px solid var(--border);
+  }
+  .friend-row:last-child { border-bottom: none; }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+    border: 1.5px solid var(--border);
+  }
+  .friend-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .friend-sub  { font-size: 12px; color: var(--text3); }
+  .done-badge  {
+    margin-left: auto; background: rgba(74,116,89,0.10);
+    color: var(--primary); font-size: 11px; font-weight: 600;
+    padding: 4px 10px; border-radius: 20px;
+    border: 1px solid rgba(74,116,89,0.15);
+  }
+  .pending-badge {
+    margin-left: auto; background: rgba(176,168,158,0.12);
+    color: var(--text3); font-size: 11px;
+    padding: 4px 10px; border-radius: 20px;
+    border: 1px solid var(--border);
+  }
+
+  /* ──────────────────────────────────────────
+     SCREEN 2: 기록 & 인사이트
+  ────────────────────────────────────────── */
+  #screen-record .top-area {
+    background: linear-gradient(160deg, #4A7B6A 0%, #6A9D8A 100%);
+    padding: 24px 20px 28px; flex-shrink: 0;
+  }
+  #screen-record .top-area h2 { font-size: 22px; font-weight: 700; color: #fff; }
+  #screen-record .top-area p  { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+
+  .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-top: 10px; }
+  .cal-day {
+    aspect-ratio: 1; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-size: 12px; color: var(--text2);
+  }
+  .cal-day.done    { background: linear-gradient(135deg, #4A7459, #7A9E82); color: #fff; font-weight: 600; }
+  .cal-day.today   { border: 2px solid #4A7459; color: var(--primary); font-weight: 600; background: rgba(74,116,89,0.08); }
+  .cal-day.empty   { opacity: 0; }
+  .cal-hdr { font-size: 11px; color: var(--text3); text-align: center; }
+
+  .chart-bar-wrap { display: flex; align-items: flex-end; gap: 6px; height: 80px; margin-top: 10px; }
+  .chart-bar-col  { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .chart-bar {
+    width: 100%; border-radius: 6px 6px 0 0;
+    background: linear-gradient(to top, #4A7459, #9DB89F);
+    transition: height .4s;
+    opacity: 0.85;
+  }
+  .chart-lbl { font-size: 10px; color: var(--text3); }
+
+  .insight-pill {
+    background: linear-gradient(135deg, rgba(74,116,89,0.06), rgba(181,205,184,0.08));
+    border-radius: 16px;
+    padding: 16px; margin-bottom: 10px;
+    border: 1px solid rgba(74,116,89,0.12);
+  }
+  .insight-pill .ico { font-size: 20px; }
+  .insight-pill .msg { font-size: 13px; color: var(--text2); margin-top: 6px; line-height: 1.6; }
+  .insight-pill .val { font-size: 22px; font-weight: 700; color: var(--primary); margin-top: 4px; }
+
+  /* ──────────────────────────────────────────
+     SCREEN 3: 명상 시작
+  ────────────────────────────────────────── */
+  #screen-meditate .med-hero {
+    background: linear-gradient(160deg, #3D6B5A 0%, #5B8C7A 60%, #7EAD9A 100%);
+    padding: 30px 20px 36px; text-align: center; flex-shrink: 0;
+  }
+  .timer-circle {
+    width: 165px; height: 165px; border-radius: 50%;
+    background: rgba(255,255,255,0.10);
+    border: 2px solid rgba(255,255,255,0.25);
+    box-shadow: 0 0 0 12px rgba(255,255,255,0.05), inset 0 2px 4px rgba(255,255,255,0.15);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .timer-num  { font-size: 42px; font-weight: 300; color: #fff; letter-spacing: -1px; }
+  .timer-sub  { font-size: 12px; color: rgba(255,255,255,0.7); }
+
+  .mode-tabs { display: flex; gap: 8px; }
+  .mode-tab  {
+    flex: 1; padding: 12px; border-radius: 16px;
+    background: var(--card); text-align: center;
+    cursor: pointer; transition: all .25s;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+  .mode-tab.active {
+    background: linear-gradient(135deg, #4A7459, #7A9E82);
+    border-color: transparent;
+    box-shadow: 0 6px 16px rgba(74,116,89,0.3);
+  }
+  .mode-tab .ico   { font-size: 22px; }
+  .mode-tab .lbl   { font-size: 12px; margin-top: 4px; color: var(--text3); }
+  .mode-tab.active .lbl { color: #fff; }
+
+  .guide-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px; background: var(--card);
+    border-radius: 14px; margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer;
+  }
+  .guide-thumb {
+    width: 52px; height: 52px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; flex-shrink: 0;
+  }
+  .guide-info .g-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .guide-info .g-sub   { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .g-lock { margin-left: auto; font-size: 18px; }
+
+  /* health result */
+  .result-card {
+    background: linear-gradient(135deg, rgba(74,116,89,0.06), rgba(181,205,184,0.10));
+    border-radius: var(--radius); padding: 18px; margin-bottom: 12px;
+    border: 1px solid rgba(74,116,89,0.12);
+  }
+  .result-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .result-row:last-child { border-bottom: none; }
+  .r-label { font-size: 13px; color: var(--text2); }
+  .r-val   { font-size: 14px; font-weight: 700; color: var(--text); }
+  .r-change-good { color: var(--primary); font-size: 13px; font-weight: 600; }
+
+  /* ──────────────────────────────────────────
+     SCREEN 4: 챌린지 & 친구
+  ────────────────────────────────────────── */
+  #screen-challenge .ch-hero {
+    background: linear-gradient(160deg, #5B7A8C 0%, #7A9BAD 100%);
+    padding: 24px 20px 28px; flex-shrink: 0;
+  }
+  #screen-challenge .ch-hero h2 { font-size: 22px; font-weight: 700; color: #fff; }
+  #screen-challenge .ch-hero p  { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+
+  .challenge-card {
+    background: var(--card); border-radius: var(--radius); padding: 18px;
+    margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  .ch-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .ch-ico    { font-size: 28px; }
+  .ch-title  { font-size: 15px; font-weight: 700; color: var(--text); }
+  .ch-period { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .progress-bar-wrap { background: var(--border); border-radius: 6px; height: 8px; overflow: hidden; }
+  .progress-bar-fill {
+    height: 100%; border-radius: 6px;
+    background: linear-gradient(to right, #4A7459, #9DB89F);
+    transition: width .6s;
+  }
+  .ch-footer { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: var(--text2); }
+
+  .participants { display: flex; gap: -6px; margin-top: 10px; }
+  .p-avatar {
+    width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+    margin-left: -6px;
+  }
+  .p-avatar:first-child { margin-left: 0; }
+
+  /* ──────────────────────────────────────────
+     SCREEN 5: 마이페이지
+  ────────────────────────────────────────── */
+  #screen-my .my-hero {
+    background: linear-gradient(160deg, #6B5B8C 0%, #8A7AAD 100%);
+    padding: 24px 20px 32px; text-align: center; flex-shrink: 0;
+  }
+  .my-avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(255,255,255,0.2); font-size: 36px;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;
+  }
+  .my-name  { font-size: 18px; font-weight: 700; color: #fff; }
+  .my-level { font-size: 13px; color: rgba(255,255,255,0.75); margin-top: 4px; }
+
+  .point-box {
+    background: linear-gradient(135deg, #3A5C46 0%, #4A7459 50%, #7A9E82 100%);
+    border-radius: var(--radius); padding: 20px;
+    margin-bottom: 12px; color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 8px 24px rgba(74,116,89,0.3);
+  }
+  .point-val { font-size: 32px; font-weight: 700; }
+  .point-lbl { font-size: 13px; opacity: .8; margin-top: 2px; }
+  .use-btn {
+    background: rgba(255,255,255,0.25); border: none; border-radius: 10px;
+    padding: 10px 18px; font-size: 13px; font-weight: 600; color: #fff;
+    font-family: inherit; cursor: pointer;
+  }
+
+  .badge-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .badge-item { text-align: center; }
+  .badge-ico  { font-size: 30px; }
+  .badge-name { font-size: 10px; color: var(--text2); margin-top: 2px; }
+
+  .menu-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 0; border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .menu-item:last-child { border-bottom: none; }
+  .menu-ico   { font-size: 22px; width: 30px; text-align: center; }
+  .menu-label { font-size: 14px; color: var(--text); }
+  .menu-arrow { margin-left: auto; color: var(--text3); font-size: 18px; }
+
+  /* ── Notification dot (demo) ── */
+  .notif { position: relative; }
+  .notif::after {
+    content: ''; position: absolute; top: -2px; right: -2px;
+    width: 8px; height: 8px; border-radius: 50%; background: #E17055;
+    border: 1.5px solid var(--bg);
+  }
+
+  /* ── Scrollable content area ── */
+  .scroll-content { flex: 1; overflow-y: auto; padding: 16px 20px 24px; }
+  .scroll-content::-webkit-scrollbar { display: none; }
+
+  /* ── Pulse animation ── */
+  @keyframes pulse {
+    0%,100% { transform: scale(1); }
+    50%      { transform: scale(1.05); }
+  }
+  .pulse { animation: pulse 3s ease-in-out infinite; }
+
+  /* ── Shimmer on heart rate ── */
+  @keyframes bpm {
+    0%,100% { opacity: 1; }
+    50%      { opacity: 0.6; }
+  }
+  .bpm-live { animation: bpm 1.2s ease-in-out infinite; }
+
+  /* ── Meditation Category Filters ── */
+  .filter-section { margin-bottom: 14px; }
+  .filter-label {
+    font-size: 11px; font-weight: 600; color: var(--text3);
+    letter-spacing: 0.5px; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .filter-chips { display: flex; gap: 7px; flex-wrap: wrap; }
+  .filter-chip {
+    padding: 7px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    border: 1.5px solid var(--border);
+    background: var(--card); color: var(--text2);
+    transition: all .2s; white-space: nowrap;
+    user-select: none;
+  }
+  .filter-chip.active {
+    background: var(--primary); color: #fff;
+    border-color: var(--primary);
+    box-shadow: 0 3px 10px rgba(74,116,89,0.28);
+    font-weight: 600;
+  }
+  .filter-chip.sos {
+    background: #C0392B; border-color: #C0392B;
+    color: #fff; font-weight: 700;
+    box-shadow: 0 3px 12px rgba(192,57,43,0.35);
+    letter-spacing: 0.3px;
+  }
+  .filter-chip.sos.active {
+    background: #96261C; border-color: #96261C;
+    box-shadow: 0 3px 14px rgba(150,38,28,0.45);
+  }
+  .type-tabs {
+    display: flex; gap: 0; margin-bottom: 16px;
+    background: var(--border); border-radius: 14px; padding: 3px;
+  }
+  .type-tab {
+    flex: 1; padding: 9px 6px; border-radius: 11px;
+    text-align: center; font-size: 12px; font-weight: 500;
+    color: var(--text2); cursor: pointer; transition: all .2s;
+  }
+  .type-tab.active {
+    background: var(--card); color: var(--primary);
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+  /* ── Butterfly ── */
+  .butterfly {
+    position: absolute;
+    top: 0; left: 0;
+    pointer-events: none;
+    transform-origin: center;
+  }
+  .butterfly svg { overflow: visible; }
+  .bf-wing-l {
+    transform-origin: 100% 50%;
+    animation: bf-flap var(--bf-spd, 0.4s) ease-in-out infinite;
+  }
+  .bf-wing-r {
+    transform-origin: 0% 50%;
+    animation: bf-flap var(--bf-spd, 0.4s) ease-in-out infinite;
+  }
+  @keyframes bf-flap {
+    0%, 100% { transform: scaleX(1); }
+    50%       { transform: scaleX(0.1); }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 480px) {
+    body { padding: 20px 0; }
+    .phone-wrap { width: 100%; }
+    .phone-frame { border-radius: 0; }
+    .phone-screen { border-radius: 0; }
+    .bottom-nav { border-radius: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Forest background -->
+<div class="forest-bg">
+  <svg id="forest-svg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax slice" viewBox="0 0 1440 900">
+    <defs>
+      <linearGradient id="sky-grad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#1C3525"/>
+        <stop offset="35%"  stop-color="#264D37"/>
+        <stop offset="65%"  stop-color="#3A6648"/>
+        <stop offset="100%" stop-color="#2E5A3E"/>
+      </linearGradient>
+      <linearGradient id="tree-far" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#2A5038"/>
+        <stop offset="100%" stop-color="#1C3525"/>
+      </linearGradient>
+      <linearGradient id="tree-mid" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#234030"/>
+        <stop offset="100%" stop-color="#182D1E"/>
+      </linearGradient>
+      <linearGradient id="tree-near" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#182D1E"/>
+        <stop offset="100%" stop-color="#0F1F13"/>
+      </linearGradient>
+      <linearGradient id="mist-grad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="transparent"/>
+        <stop offset="55%"  stop-color="rgba(74,116,89,0.08)"/>
+        <stop offset="100%" stop-color="rgba(28,53,37,0.45)"/>
+      </linearGradient>
+      <!-- Moon glow -->
+      <radialGradient id="moon-glow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%"   stop-color="rgba(232,220,190,0.9)"/>
+        <stop offset="40%"  stop-color="rgba(200,190,160,0.5)"/>
+        <stop offset="100%" stop-color="rgba(180,210,190,0)"/>
+      </radialGradient>
+    </defs>
+    <!-- Sky -->
+    <rect width="1440" height="900" fill="url(#sky-grad)"/>
+    <!-- Stars -->
+    <g id="stars" opacity="0.5"></g>
+    <!-- Trees far layer -->
+    <g id="trees-far" opacity="0.55"></g>
+    <!-- Trees mid layer -->
+    <g id="trees-mid" opacity="0.8"></g>
+    <!-- Trees near layer -->
+    <g id="trees-near" opacity="1"></g>
+    <!-- Mist overlay -->
+    <rect width="1440" height="900" fill="url(#mist-grad)"/>
+  </svg>
+</div>
+
+<div class="landing-header">
+  <h1>🌿 매일 나를 돌보는 시간</h1>
+  <p>명상 앱 UI 목업 · 기획서 v1.0 기반</p>
+</div>
+
+<div class="screen-tabs">
+  <button class="active" onclick="showScreen('home',this)">🏠 홈</button>
+  <button onclick="showScreen('record',this)">📊 기록</button>
+  <button onclick="showScreen('meditate',this)">🧘 명상</button>
+  <button onclick="showScreen('challenge',this)">🏆 챌린지</button>
+  <button onclick="showScreen('my',this)">👤 마이</button>
+</div>
+
+<div class="phone-wrap">
+  <div class="phone-frame">
+    <div class="phone-screen">
+
+      <!-- Status bar -->
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+          <span>📶</span><span>🔋</span>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════
+           SCREEN 1: 홈
+      ════════════════════════════ -->
+      <div id="screen-home" class="screen active">
+        <div id="screen-home" style="display:contents">
+          <div class="greeting-area" style="background:linear-gradient(160deg,#3A5C46 0%,#4A7459 40%,#6A9472 80%,#9DB89F 100%);padding:24px 20px 32px;flex-shrink:0;">
+            <div class="date">2026년 5월 9일 토요일</div>
+            <h2>안녕하세요, 지영님 👋</h2>
+            <p>오늘도 나를 위한 시간을 만들어볼까요?</p>
+          </div>
+        </div>
+
+        <div class="scroll-content">
+          <!-- 오늘 명상 시작 -->
+          <button class="big-btn big-btn-primary pulse" style="margin-bottom:16px;" onclick="showScreen('meditate',null)">
+            🧘 오늘의 명상 시작하기
+          </button>
+
+          <!-- 오늘 통계 -->
+          <p class="card-title" style="margin-bottom:8px;">오늘의 현황</p>
+          <div class="today-stats">
+            <div class="stat-card">
+              <div class="stat-val">15</div>
+              <div class="stat-unit">분 명상</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val">🔥 7</div>
+              <div class="stat-unit">일 연속</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val">↓12%</div>
+              <div class="stat-unit">심박수</div>
+            </div>
+          </div>
+
+          <!-- 이번 주 스트릭 -->
+          <div class="card" style="margin-top:4px;">
+            <div class="card-title">이번 주 명상 기록</div>
+            <div class="streak-bar">
+              <div class="streak-day done"></div>
+              <div class="streak-day done"></div>
+              <div class="streak-day done"></div>
+              <div class="streak-day done"></div>
+              <div class="streak-day done"></div>
+              <div class="streak-day done"></div>
+              <div class="streak-day" style="background:var(--border);"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text3);">
+              <span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span>
+            </div>
+          </div>
+
+          <!-- 진행 중인 챌린지 -->
+          <div class="card">
+            <div class="card-title">진행 중인 챌린지</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+              <span style="font-size:22px;">🌙</span>
+              <div>
+                <div style="font-size:14px;font-weight:600;color:var(--text);">5월 매일 명상 챌린지</div>
+                <div style="font-size:12px;color:var(--text2);">9/31일 완료</div>
+              </div>
+              <span class="tag" style="margin-left:auto;">D-22</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width:29%"></div>
+            </div>
+          </div>
+
+          <!-- 친구 현황 -->
+          <div class="card">
+            <div class="card-title">친구 오늘 현황</div>
+            <div class="friend-row">
+              <div class="avatar" style="background:#FFF3E0;">🐰</div>
+              <div>
+                <div class="friend-name">민지</div>
+                <div class="friend-sub">🔥 12일 연속</div>
+              </div>
+              <span class="done-badge">완료 ✓</span>
+            </div>
+            <div class="friend-row">
+              <div class="avatar" style="background:#E8F5E9;">🐻</div>
+              <div>
+                <div class="friend-name">수현</div>
+                <div class="friend-sub">🔥 5일 연속</div>
+              </div>
+              <span class="done-badge">완료 ✓</span>
+            </div>
+            <div class="friend-row">
+              <div class="avatar" style="background:#E3F2FD;">🐼</div>
+              <div>
+                <div class="friend-name">태양</div>
+                <div class="friend-sub">🔥 3일 연속</div>
+              </div>
+              <span class="pending-badge">미완료</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════
+           SCREEN 2: 기록 & 인사이트
+      ════════════════════════════ -->
+      <div id="screen-record" class="screen">
+        <div style="background:linear-gradient(160deg,#2E4D3A 0%,#4A7459 50%,#7A9E82 100%);padding:24px 20px 28px;flex-shrink:0;">
+          <h2 style="font-size:22px;font-weight:700;color:#fff;">기록 & 인사이트</h2>
+          <p style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">5월 누적 명상 · 135분</p>
+        </div>
+
+        <div class="scroll-content">
+          <!-- 캘린더 -->
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <span style="font-size:15px;font-weight:700;color:var(--text);">2026년 5월</span>
+              <span class="tag">🔥 7일 연속</span>
+            </div>
+            <div class="cal-grid">
+              <div class="cal-hdr">일</div><div class="cal-hdr">월</div><div class="cal-hdr">화</div>
+              <div class="cal-hdr">수</div><div class="cal-hdr">목</div><div class="cal-hdr">금</div><div class="cal-hdr">토</div>
+              <div class="cal-day empty"></div>
+              <div class="cal-day empty"></div>
+              <div class="cal-day empty"></div>
+              <div class="cal-day empty"></div>
+              <div class="cal-day empty"></div>
+              <div class="cal-day done">1</div>
+              <div class="cal-day done">2</div>
+              <div class="cal-day done">3</div>
+              <div class="cal-day done">4</div>
+              <div class="cal-day done">5</div>
+              <div class="cal-day done">6</div>
+              <div class="cal-day done">7</div>
+              <div class="cal-day done">8</div>
+              <div class="cal-day today">9</div>
+              <div class="cal-day">10</div>
+              <div class="cal-day">11</div>
+              <div class="cal-day">12</div>
+              <div class="cal-day">13</div>
+              <div class="cal-day">14</div>
+              <div class="cal-day">15</div>
+              <div class="cal-day">16</div>
+            </div>
+          </div>
+
+          <!-- 심박수 그래프 -->
+          <div class="card">
+            <div class="card-title">이번 주 명상 후 심박수</div>
+            <div class="chart-bar-wrap">
+              <div class="chart-bar-col"><div class="chart-bar" style="height:45px;"></div><div class="chart-lbl">월</div></div>
+              <div class="chart-bar-col"><div class="chart-bar" style="height:60px;"></div><div class="chart-lbl">화</div></div>
+              <div class="chart-bar-col"><div class="chart-bar" style="height:50px;"></div><div class="chart-lbl">수</div></div>
+              <div class="chart-bar-col"><div class="chart-bar" style="height:70px;"></div><div class="chart-lbl">목</div></div>
+              <div class="chart-bar-col"><div class="chart-bar" style="height:55px;"></div><div class="chart-lbl">금</div></div>
+              <div class="chart-bar-col"><div class="chart-bar" style="height:65px;"></div><div class="chart-lbl">토</div></div>
+              <div class="chart-bar-col"><div class="chart-bar" style="height:20px;opacity:.3;"></div><div class="chart-lbl">일</div></div>
+            </div>
+            <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:right;">평균 62 bpm (명상 후)</div>
+          </div>
+
+          <!-- AI 인사이트 -->
+          <p class="card-title" style="margin-bottom:8px;">🤖 AI 인사이트</p>
+          <div class="insight-pill">
+            <div class="ico">❤️</div>
+            <div class="val">↓ 18%</div>
+            <div class="msg">이번 주 명상 후 심박수가 평균 <b>18% 낮아졌어요.</b> 꾸준한 명상이 효과를 내고 있어요!</div>
+          </div>
+          <div class="insight-pill">
+            <div class="ico">🌙</div>
+            <div class="msg">명상을 한 날의 수면 시간이 <b>평균 23분 더 길었어요.</b> 저녁 명상 습관이 수면에 도움이 되고 있어요.</div>
+          </div>
+          <div class="insight-pill">
+            <div class="ico">⭐</div>
+            <div class="msg">이번 달 <b>9일 연속</b> 달성! 이 속도라면 30일 마일스톤 뱃지를 획득할 수 있어요.</div>
+          </div>
+
+          <!-- 누적 통계 -->
+          <div class="card">
+            <div class="card-title">누적 기록</div>
+            <div style="display:flex;gap:0;text-align:center;">
+              <div style="flex:1;border-right:1px solid var(--border);">
+                <div style="font-size:22px;font-weight:700;color:var(--primary);">135분</div>
+                <div style="font-size:11px;color:var(--text2);margin-top:2px;">이번 달</div>
+              </div>
+              <div style="flex:1;border-right:1px solid var(--border);">
+                <div style="font-size:22px;font-weight:700;color:var(--primary);">9회</div>
+                <div style="font-size:11px;color:var(--text2);margin-top:2px;">명상 횟수</div>
+              </div>
+              <div style="flex:1;">
+                <div style="font-size:22px;font-weight:700;color:var(--primary);">520P</div>
+                <div style="font-size:11px;color:var(--text2);margin-top:2px;">적립 포인트</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════
+           SCREEN 3: 명상 시작
+      ════════════════════════════ -->
+      <div id="screen-meditate" class="screen">
+        <div style="background:linear-gradient(160deg,#243D2E 0%,#3A5C46 40%,#4A7459 75%,#8FB896 100%);padding:28px 20px 32px;text-align:center;flex-shrink:0;">
+          <div class="timer-circle pulse">
+            <div class="timer-num">15:00</div>
+            <div class="timer-sub">남은 시간</div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;">
+            <span style="font-size:13px;color:rgba(255,255,255,0.8);">심박수</span>
+            <span class="bpm-live" style="font-size:18px;font-weight:700;color:#fff;">❤️ 72 bpm</span>
+          </div>
+          <p style="font-size:12px;color:rgba(255,255,255,0.6);">Apple Watch 연동 중</p>
+        </div>
+
+        <div class="scroll-content">
+
+          <!-- 타입 탭 -->
+          <div class="type-tabs">
+            <div class="type-tab active" onclick="setMedType('guide',this)">🎧 가이드 명상</div>
+            <div class="type-tab" onclick="setMedType('nature',this)">🌿 자연의 소리</div>
+            <div class="type-tab" onclick="setMedType('free',this)">⏱️ 자유 타이머</div>
+          </div>
+
+          <!-- 시간대 필터 -->
+          <div class="filter-section">
+            <div class="filter-label">언제 명상하나요?</div>
+            <div class="filter-chips" id="time-chips">
+              <div class="filter-chip active" onclick="toggleChip(this,'time-chips')">🌅 아침</div>
+              <div class="filter-chip" onclick="toggleChip(this,'time-chips')">☀️ 낮</div>
+              <div class="filter-chip" onclick="toggleChip(this,'time-chips')">🌙 잠자기 전</div>
+              <div class="filter-chip sos" onclick="toggleChip(this,'time-chips')">🆘 SOS</div>
+            </div>
+          </div>
+
+          <!-- 언어 필터 -->
+          <div class="filter-section">
+            <div class="filter-label">언어</div>
+            <div class="filter-chips" id="lang-chips">
+              <div class="filter-chip active" onclick="toggleChip(this,'lang-chips')">🇰🇷 한국어</div>
+              <div class="filter-chip" onclick="toggleChip(this,'lang-chips')">🇺🇸 English</div>
+              <div class="filter-chip" onclick="toggleChip(this,'lang-chips')">🇯🇵 日本語</div>
+              <div class="filter-chip" onclick="toggleChip(this,'lang-chips')">🇫🇷 Français</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- 콘텐츠 목록 (가이드 명상 기본 노출) -->
+          <div id="med-list-guide">
+            <div class="guide-item">
+              <div class="guide-thumb" style="background:#FFF3E0;">🌅</div>
+              <div class="guide-info">
+                <div class="g-title">아침 에너지 명상</div>
+                <div class="g-sub">10분 · 아침 · 입문 · 한국어</div>
+              </div>
+              <span class="g-lock">▶️</span>
+            </div>
+            <div class="guide-item">
+              <div class="guide-thumb" style="background:#E8F5E9;">🌙</div>
+              <div class="guide-info">
+                <div class="g-title">수면 유도 명상</div>
+                <div class="g-sub">20분 · 잠자기 전 · 초급 · 한국어</div>
+              </div>
+              <span class="g-lock">▶️</span>
+            </div>
+            <div class="guide-item">
+              <div class="guide-thumb" style="background:#FDE8E8;">🆘</div>
+              <div class="guide-info">
+                <div class="g-title">긴급 진정 호흡</div>
+                <div class="g-sub">5분 · SOS · 입문 · 한국어</div>
+              </div>
+              <span class="g-lock">▶️</span>
+            </div>
+            <div class="guide-item">
+              <div class="guide-thumb" style="background:#E8F0FE;">☀️</div>
+              <div class="guide-info">
+                <div class="g-title">Midday Reset</div>
+                <div class="g-sub">10min · 낮 · Beginner · English</div>
+              </div>
+              <span class="g-lock">▶️</span>
+            </div>
+            <div class="guide-item" style="opacity:0.55;">
+              <div class="guide-thumb" style="background:#F3E5F5;">🧠</div>
+              <div class="guide-info">
+                <div class="g-title">스트레스 완화 집중</div>
+                <div class="g-sub">30분 · SOS · 중급 · 한국어 · 300P</div>
+              </div>
+              <span class="g-lock">🔒</span>
+            </div>
+            <div class="guide-item" style="opacity:0.55;">
+              <div class="guide-thumb" style="background:#E3F2FD;">🌸</div>
+              <div class="guide-info">
+                <div class="g-title">朝の瞑想</div>
+                <div class="g-sub">15分 · 아침 · 초급 · 日本語 · 50P</div>
+              </div>
+              <span class="g-lock">🔒</span>
+            </div>
+          </div>
+
+          <!-- 자연의 소리 목록 (숨김) -->
+          <div id="med-list-nature" style="display:none;">
+            <div class="guide-item">
+              <div class="guide-thumb" style="background:#E8F5E9;">🌧️</div>
+              <div class="guide-info">
+                <div class="g-title">빗소리</div>
+                <div class="g-sub">무한 재생 · 숙면 · 집중</div>
+              </div>
+              <span class="g-lock">▶️</span>
+            </div>
+            <div class="guide-item">
+              <div class="guide-thumb" style="background:#E3F2FD;">🌊</div>
+              <div class="guide-info">
+                <div class="g-title">파도 소리</div>
+                <div class="g-sub">무한 재생 · 긴장 완화</div>
+              </div>
+              <span class="g-lock">▶️</span>
+            </div>
+            <div class="guide-item">
+              <div class="guide-thumb" style="background:#FFF8E1;">🔥</div>
+              <div class="guide-info">
+                <div class="g-title">장작 타는 소리</div>
+                <div class="g-sub">무한 재생 · 포근함 · 잠자기 전</div>
+              </div>
+              <span class="g-lock">▶️</span>
+            </div>
+            <div class="guide-item">
+              <div class="guide-thumb" style="background:#F1F8E9;">🌲</div>
+              <div class="guide-info">
+                <div class="g-title">숲속 새소리</div>
+                <div class="g-sub">무한 재생 · 아침 · 집중</div>
+              </div>
+              <span class="g-lock">▶️</span>
+            </div>
+            <div class="guide-item" style="opacity:0.55;">
+              <div class="guide-thumb" style="background:#E8EAF6;">🎵</div>
+              <div class="guide-info">
+                <div class="g-title">티베트 싱잉볼</div>
+                <div class="g-sub">30분 · SOS · 50P</div>
+              </div>
+              <span class="g-lock">🔒</span>
+            </div>
+          </div>
+
+          <!-- 자유 타이머 (숨김) -->
+          <div id="med-list-free" style="display:none;">
+            <div class="card" style="text-align:center;padding:28px 20px;">
+              <div style="font-size:48px;margin-bottom:12px;">⏱️</div>
+              <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">자유 타이머</div>
+              <div style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;">원하는 시간만큼 자유롭게<br>명상하세요</div>
+              <div style="display:flex;justify-content:center;gap:10px;margin-bottom:20px;">
+                <div class="filter-chip active">5분</div>
+                <div class="filter-chip">10분</div>
+                <div class="filter-chip">15분</div>
+                <div class="filter-chip">20분</div>
+                <div class="filter-chip">30분</div>
+              </div>
+              <button class="big-btn big-btn-primary">시작하기</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ════════════════════════════
+           SCREEN 4: 챌린지 & 친구
+      ════════════════════════════ -->
+      <div id="screen-challenge" class="screen">
+        <div style="background:linear-gradient(160deg,#3A4F3A 0%,#4A6B52 50%,#7A9E82 100%);padding:24px 20px 28px;flex-shrink:0;">
+          <h2 style="font-size:22px;font-weight:700;color:#fff;">챌린지 & 친구</h2>
+          <p style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">함께하면 더 오래 지속돼요</p>
+        </div>
+
+        <div class="scroll-content">
+          <!-- 내 챌린지 -->
+          <p class="card-title" style="margin-bottom:8px;">참여 중인 챌린지</p>
+
+          <div class="challenge-card">
+            <div class="ch-header">
+              <span class="ch-ico">🌙</span>
+              <div>
+                <div class="ch-title">5월 매일 명상 챌린지</div>
+                <div class="ch-period">2026.05.01 ~ 05.31 · 31일</div>
+              </div>
+              <span class="tag" style="margin-left:auto;">진행 중</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width:29%"></div>
+            </div>
+            <div class="ch-footer">
+              <span>9 / 31일 완료</span>
+              <span>참여자 1,248명</span>
+            </div>
+          </div>
+
+          <div class="challenge-card">
+            <div class="ch-header">
+              <span class="ch-ico">👫</span>
+              <div>
+                <div class="ch-title">민지와 함께 7일 챌린지</div>
+                <div class="ch-period">2026.05.05 ~ 05.11 · 7일</div>
+              </div>
+              <span class="tag" style="background:rgba(212,149,106,0.15);color:var(--accent);">D-2</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width:72%"></div>
+            </div>
+            <div class="ch-footer">
+              <span>5 / 7일 완료</span>
+              <div class="participants">
+                <div class="p-avatar" style="background:#FFF3E0;">🐰</div>
+                <div class="p-avatar" style="background:#E8F5E9;">🌿</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 추천 챌린지 -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <p class="card-title">추천 챌린지</p>
+            <span style="font-size:12px;color:var(--primary);cursor:pointer;">전체 보기 →</span>
+          </div>
+
+          <div class="challenge-card" style="border:1.5px dashed var(--border);">
+            <div class="ch-header">
+              <span class="ch-ico">🌅</span>
+              <div>
+                <div class="ch-title">아침 명상 14일 챌린지</div>
+                <div class="ch-period">매일 오전 7시 · 10분 이상</div>
+              </div>
+            </div>
+            <button style="width:100%;padding:12px;border:none;border-radius:14px;background:linear-gradient(135deg,#4A7459,#7A9E82);color:#fff;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;box-shadow:0 4px 12px rgba(74,116,89,0.25);">참여하기 +100P 🌿</button>
+          </div>
+
+          <!-- 친구 목록 -->
+          <p class="card-title" style="margin-top:4px;margin-bottom:8px;">친구</p>
+          <div class="card">
+            <div class="friend-row">
+              <div class="avatar" style="background:#FFF3E0;">🐰</div>
+              <div>
+                <div class="friend-name">민지</div>
+                <div class="friend-sub">🔥 12일 연속 · 오늘 완료</div>
+              </div>
+              <span class="done-badge">✓</span>
+            </div>
+            <div class="friend-row">
+              <div class="avatar" style="background:#E8F5E9;">🐻</div>
+              <div>
+                <div class="friend-name">수현</div>
+                <div class="friend-sub">🔥 5일 연속 · 오늘 완료</div>
+              </div>
+              <span class="done-badge">✓</span>
+            </div>
+            <div class="friend-row">
+              <div class="avatar" style="background:#E3F2FD;">🐼</div>
+              <div>
+                <div class="friend-name">태양</div>
+                <div class="friend-sub">🔥 3일 연속 · 미완료</div>
+              </div>
+              <span class="pending-badge">—</span>
+            </div>
+            <div style="text-align:center;padding:12px 0 0;">
+              <span style="font-size:13px;color:var(--primary);cursor:pointer;font-weight:600;">+ 친구 초대하기</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════
+           SCREEN 5: 마이페이지
+      ════════════════════════════ -->
+      <div id="screen-my" class="screen">
+        <div style="background:linear-gradient(160deg,#2E3D2E 0%,#3A5C3A 40%,#5A7D5A 80%,#8FAF8A 100%);padding:24px 20px 32px;text-align:center;flex-shrink:0;">
+          <div class="my-avatar">🌿</div>
+          <div class="my-name">신지영</div>
+          <div class="my-level">🌳 나무 레벨 · 명상 135분</div>
+          <div style="display:flex;justify-content:center;gap:8px;margin-top:12px;">
+            <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:4px 12px;border-radius:20px;">🔥 7일 연속</span>
+            <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:4px 12px;border-radius:20px;">⭐ 챌린지 2개</span>
+          </div>
+        </div>
+
+        <div class="scroll-content">
+          <!-- 포인트 -->
+          <div class="point-box">
+            <div>
+              <div class="point-val">520 P</div>
+              <div class="point-lbl">보유 포인트</div>
+            </div>
+            <button class="use-btn">교환소 →</button>
+          </div>
+
+          <!-- 뱃지 -->
+          <div class="card">
+            <div class="card-title">획득한 뱃지</div>
+            <div class="badge-grid">
+              <div class="badge-item"><div class="badge-ico">🌱</div><div class="badge-name">첫 명상</div></div>
+              <div class="badge-item"><div class="badge-ico">🔥</div><div class="badge-name">7일 연속</div></div>
+              <div class="badge-item"><div class="badge-ico">⌚</div><div class="badge-name">건강 연동</div></div>
+              <div class="badge-item"><div class="badge-ico">🏆</div><div class="badge-name">챌린지 완주</div></div>
+              <div class="badge-item" style="opacity:.3;"><div class="badge-ico">🌙</div><div class="badge-name">30일 달성</div></div>
+              <div class="badge-item" style="opacity:.3;"><div class="badge-ico">⭐</div><div class="badge-name">마일스톤</div></div>
+            </div>
+          </div>
+
+          <!-- 메뉴 -->
+          <div class="card">
+            <div class="menu-item">
+              <span class="menu-ico">📊</span>
+              <span class="menu-label">포인트 적립/사용 내역</span>
+              <span class="menu-arrow">›</span>
+            </div>
+            <div class="menu-item">
+              <span class="menu-ico">🔔</span>
+              <span class="menu-label">명상 알림 설정</span>
+              <span class="menu-arrow">›</span>
+            </div>
+            <div class="menu-item">
+              <span class="menu-ico">⌚</span>
+              <span class="menu-label">건강 기기 연동</span>
+              <span class="menu-arrow">›</span>
+            </div>
+            <div class="menu-item">
+              <span class="menu-ico">🔒</span>
+              <span class="menu-label">개인정보 및 보안</span>
+              <span class="menu-arrow">›</span>
+            </div>
+            <div class="menu-item">
+              <span class="menu-ico">💎</span>
+              <span class="menu-label">프리미엄 구독</span>
+              <span class="menu-arrow">›</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Navigation -->
+      <div class="bottom-nav">
+        <div class="nav-item active" id="nav-home" onclick="showScreen('home',null)">
+          <span class="nav-icon">🏠</span>
+          <span>홈</span>
+        </div>
+        <div class="nav-item" id="nav-record" onclick="showScreen('record',null)">
+          <span class="nav-icon notif">📊</span>
+          <span>기록</span>
+        </div>
+        <div class="nav-item" id="nav-meditate" onclick="showScreen('meditate',null)">
+          <span class="nav-icon">🧘</span>
+          <span>명상</span>
+        </div>
+        <div class="nav-item" id="nav-challenge" onclick="showScreen('challenge',null)">
+          <span class="nav-icon">🏆</span>
+          <span>챌린지</span>
+        </div>
+        <div class="nav-item" id="nav-my" onclick="showScreen('my',null)">
+          <span class="nav-icon">👤</span>
+          <span>마이</span>
+        </div>
+      </div>
+
+    </div><!-- phone-screen -->
+  </div><!-- phone-frame -->
+</div><!-- phone-wrap -->
+
+<script>
+const screens = ['home','record','meditate','challenge','my'];
+
+function showScreen(name, tabBtn) {
+  screens.forEach(s => {
+    document.getElementById('screen-' + s).classList.remove('active');
+    const nav = document.getElementById('nav-' + s);
+    if (nav) nav.classList.remove('active');
+  });
+  document.getElementById('screen-' + name).classList.add('active');
+  const nav = document.getElementById('nav-' + name);
+  if (nav) nav.classList.add('active');
+
+  // tab buttons
+  if (tabBtn) {
+    document.querySelectorAll('.screen-tabs button').forEach(b => b.classList.remove('active'));
+    tabBtn.classList.add('active');
+  } else {
+    const idx = screens.indexOf(name);
+    const tabs = document.querySelectorAll('.screen-tabs button');
+    tabs.forEach(b => b.classList.remove('active'));
+    if (tabs[idx]) tabs[idx].classList.add('active');
+  }
+}
+
+// Meditation type tab
+function setMedType(type, el) {
+  document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['guide','nature','free'].forEach(t => {
+    const list = document.getElementById('med-list-' + t);
+    if (list) list.style.display = t === type ? '' : 'none';
+  });
+}
+
+// Filter chip toggle (single-select per group)
+function toggleChip(el, groupId) {
+  document.querySelectorAll('#' + groupId + ' .filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// BPM animation
+let bpm = 72;
+setInterval(() => {
+  bpm = 70 + Math.floor(Math.random() * 6);
+  const el = document.querySelector('.bpm-live');
+  if (el) el.textContent = '❤️ ' + bpm + ' bpm';
+}, 2000);
+
+// ── Butterflies ──
+(function() {
+  const forestBg = document.querySelector('.forest-bg');
+  function makeBf() {
+    const div = document.createElement('div');
+    div.className = 'butterfly';
+    div.innerHTML = `<svg width="52" height="36" viewBox="0 0 60 38">
+      <g class="bf-wing-l">
+        <path d="M29 19 C20 6,2 2,2 14 C2 25,14 29,29 22" fill="#FFFFFF" opacity="0.82"/>
+        <path d="M29 22 C18 24,6 28,6 34 C6 38,18 38,29 26" fill="#EAF4EE" opacity="0.70"/>
+      </g>
+      <g class="bf-wing-r">
+        <path d="M31 19 C40 6,58 2,58 14 C58 25,46 29,31 22" fill="#FFFFFF" opacity="0.82"/>
+        <path d="M31 22 C42 24,54 28,54 34 C54 38,42 38,31 26" fill="#EAF4EE" opacity="0.70"/>
+      </g>
+      <ellipse cx="30" cy="21" rx="2" ry="6.5" fill="#C8DDD0" opacity="0.55"/>
+      <ellipse cx="30" cy="13.5" rx="1.2" ry="2.2" fill="#C8DDD0" opacity="0.45"/>
+    </svg>`;
+    return div;
+  }
+
+  const bfs = [];
+  for (let i = 0; i < 3; i++) {
+    const el = makeBf();
+    forestBg.appendChild(el);
+    const flapSpd = (0.65 + Math.random() * 0.35).toFixed(2) + 's';
+    el.querySelectorAll('.bf-wing-l,.bf-wing-r').forEach(w => w.style.setProperty('--bf-spd', flapSpd));
+    bfs.push({
+      el,
+      x: Math.random() * window.innerWidth,
+      y: 80 + Math.random() * (window.innerHeight * 0.55),
+      vx: (Math.random() - 0.45) * 0.28,
+      vy: (Math.random() - 0.5) * 0.12,
+      t: Math.random() * 200,
+      wander: Math.random() * Math.PI * 2,
+      sc: 0.7 + Math.random() * 0.45,
+    });
+  }
+
+  function tick() {
+    const W = window.innerWidth, H = window.innerHeight;
+    bfs.forEach(b => {
+      b.t++;
+      b.wander += (Math.random() - 0.5) * 0.02;
+      b.vx += Math.cos(b.wander) * 0.008;
+      b.vy += Math.sin(b.wander) * 0.008;
+      const spd = Math.hypot(b.vx, b.vy);
+      if (spd > 0.38) { b.vx *= 0.38 / spd; b.vy *= 0.38 / spd; }
+      b.x += b.vx;
+      b.y += b.vy + Math.sin(b.t * 0.04) * 0.18;
+      if (b.x > W + 80) b.x = -80;
+      if (b.x < -80) b.x = W + 80;
+      if (b.y < 50)        b.vy += 0.06;
+      if (b.y > H * 0.72)  b.vy -= 0.06;
+      const fx = b.vx < 0 ? -b.sc : b.sc;
+      b.el.style.transform = `translate(${b.x}px,${b.y}px) scale(${fx},${b.sc})`;
+    });
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+
+// ── Forest SVG generator ──
+(function() {
+  const ns = 'http://www.w3.org/2000/svg';
+  const W = 1440, H = 900;
+
+  function rnd(min, max) { return min + Math.random() * (max - min); }
+
+  // Pine tree path: cx=center-x, base=ground-y, h=height, w=half-width-at-base
+  function makePine(cx, base, h, w, fill) {
+    const tiers = 4;
+    const g = document.createElementNS(ns, 'g');
+    // Trunk
+    const trunk = document.createElementNS(ns, 'rect');
+    trunk.setAttribute('x', cx - w * 0.08);
+    trunk.setAttribute('y', base - h * 0.12);
+    trunk.setAttribute('width', w * 0.16);
+    trunk.setAttribute('height', h * 0.12);
+    trunk.setAttribute('fill', fill);
+    trunk.setAttribute('opacity', '0.6');
+    g.appendChild(trunk);
+    // Layered tiers
+    for (let i = 0; i < tiers; i++) {
+      const t = i / tiers;
+      const tierH = h * (1 - t);
+      const tierW = w * (0.95 - t * 0.35);
+      const tierTop = base - h * (0.08 + t * 0.88);
+      const tierBase = base - h * (0.08 + t * 0.88 - 0.25);
+      const tri = document.createElementNS(ns, 'polygon');
+      const pts = [
+        [cx, tierTop],
+        [cx + tierW * (0.5 + rnd(0.05, 0.15)), tierBase],
+        [cx - tierW * (0.5 + rnd(0.05, 0.15)), tierBase]
+      ];
+      tri.setAttribute('points', pts.map(p => p.join(',')).join(' '));
+      tri.setAttribute('fill', fill);
+      g.appendChild(tri);
+    }
+    return g;
+  }
+
+  // Stars
+  const starGroup = document.getElementById('stars');
+  for (let i = 0; i < 60; i++) {
+    const c = document.createElementNS(ns, 'circle');
+    c.setAttribute('cx', rnd(0, W));
+    c.setAttribute('cy', rnd(0, H * 0.55));
+    c.setAttribute('r', rnd(0.5, 2));
+    c.setAttribute('fill', '#C8DDD0');
+    c.setAttribute('opacity', rnd(0.2, 0.8));
+    starGroup.appendChild(c);
+  }
+
+  // Layer config: [group-id, fill-gradient-id, count, height-range, width-range, ground-y]
+  const layers = [
+    { id: 'trees-far',  fill: 'url(#tree-far)',  n: 28, hMin: 80,  hMax: 140, wMin: 22, wMax: 42, ground: H * 0.82 },
+    { id: 'trees-mid',  fill: 'url(#tree-mid)',  n: 18, hMin: 120, hMax: 220, wMin: 35, wMax: 65, ground: H * 0.90 },
+    { id: 'trees-near', fill: 'url(#tree-near)', n: 12, hMin: 180, hMax: 300, wMin: 50, wMax: 90, ground: H * 1.00 },
+  ];
+
+  layers.forEach(layer => {
+    const g = document.getElementById(layer.id);
+    const step = W / layer.n;
+    for (let i = 0; i < layer.n; i++) {
+      const cx = i * step + rnd(0, step);
+      const h  = rnd(layer.hMin, layer.hMax);
+      const w  = rnd(layer.wMin, layer.wMax);
+      g.appendChild(makePine(cx, layer.ground, h, w, layer.fill));
+    }
+  });
+})();
+</script>
+</body>
+</html>
